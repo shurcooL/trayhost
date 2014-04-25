@@ -47,7 +47,7 @@ import "C"
 
 var isExiting bool
 var urlPtr unsafe.Pointer
-var menuItems MenuItems
+var menuItems []MenuItem
 
 type MenuItem struct {
 	Title    string
@@ -55,10 +55,8 @@ type MenuItem struct {
 	Handler  func()
 }
 
-type MenuItems []MenuItem
-
 // Run the host system's event loop
-func Initialize(title string, imageData []byte, items MenuItems) {
+func Initialize(title string, imageData []byte, items []MenuItem) {
 	menuItems = items
 
 	defer C.free(urlPtr)
