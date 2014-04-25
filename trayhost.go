@@ -98,9 +98,8 @@ func Exit() {
 	C.exit_loop()
 }
 
-func CAddMenuItem(id C.int, title *C.char, disabled C.int) {
-	C.add_menu_item(id, title, disabled)
-}
+// Creates a separator MenuItem.
+func SeparatorMenuItem() MenuItem { return MenuItem{Title: ""} }
 
 func AddMenuItem(id int, item MenuItem) {
 	if item.Title == "" {
@@ -111,6 +110,10 @@ func AddMenuItem(id int, item MenuItem) {
 		// titlePtr, _ := syscall.UTF16PtrFromString(item.Title)
 		// C.add_menu_item((C.int)(id), (*C.char)(unsafe.Pointer(titlePtr)), cbool(item.Disabled))
 	}
+}
+
+func cAddMenuItem(id C.int, title *C.char, disabled C.int) {
+	C.add_menu_item(id, title, disabled)
 }
 
 func cbool(b bool) C.int {
