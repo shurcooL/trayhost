@@ -29,6 +29,7 @@ http://github.com/cratonica/trayhost
 package trayhost
 
 import (
+	"errors"
 	"reflect"
 	"unsafe"
 )
@@ -110,4 +111,43 @@ func cbool(b bool) C.int {
 	} else {
 		return 0
 	}
+}
+
+// SetClipboardString sets the system clipboard to the specified UTF-8 encoded
+// string.
+//
+// This function may only be called from the main thread.
+func SetClipboardString(str string) {
+	cp := C.CString(str)
+	defer C.free(unsafe.Pointer(cp))
+
+	C.set_clipboard_string(cp)
+}
+
+// GetClipboardString returns the contents of the system clipboard, if it
+// contains or is convertible to a UTF-8 encoded string.
+//
+// This function may only be called from the main thread.
+func GetClipboardString() (string, error) {
+	cs := C.get_clipboard_string()
+	if cs == nil {
+		return "", errors.New("Can't get clipboard string.")
+	}
+
+	return C.GoString(cs), nil
+}
+
+// GetClipboardString returns the contents of the system clipboard, if it
+// contains or is convertible to an image.
+//
+// This function may only be called from the main thread.
+//
+// TODO: Currently assumes PNG. Support other types, return type.
+func GetClipboardImage() ([]byte, error) {
+	img := C.get_clipboard_image()
+	if img.bytes == nil {
+		return nil, errors.New("Can't get clipboard image.")
+	}
+
+	return C.GoBytes(img.bytes, img.length), nil
 }
