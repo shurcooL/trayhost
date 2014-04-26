@@ -7,11 +7,11 @@ NSMenu* appMenu;
 extern void tray_callback(int itemId);
 
 @interface ManageHandler : NSObject
-+ (IBAction)manage:(id)sender;
++ (void)manage:(id)sender;
 @end
 
 @implementation ManageHandler
-+ (IBAction)manage:(id)sender {
++ (void)manage:(id)sender {
     tray_callback([[sender representedObject] intValue]);
 }
 @end

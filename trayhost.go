@@ -45,8 +45,6 @@ import (
 */
 import "C"
 
-var isExiting bool
-var urlPtr unsafe.Pointer
 var menuItems []MenuItem
 
 type MenuItem struct {
@@ -57,10 +55,6 @@ type MenuItem struct {
 
 // Run the host system's event loop
 func Initialize(title string, imageData []byte, items []MenuItem) {
-	menuItems = items
-
-	defer C.free(urlPtr)
-
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
 
@@ -80,16 +74,14 @@ func Initialize(title string, imageData []byte, items []MenuItem) {
 	// Initialize menu
 	C.init(cTitle, &cImageDataSlice[0], C.uint(len(imageData)))
 
+	menuItems = items
 	for id, item := range menuItems {
-		AddMenuItem(id, item)
+		addItem(id, item)
 	}
-
 }
 
 func EnterLoop() {
 	C.native_loop()
-	// If reached, user clicked Exit
-	isExiting = true
 }
 
 func Exit() {
@@ -99,14 +91,12 @@ func Exit() {
 // Creates a separator MenuItem.
 func SeparatorMenuItem() MenuItem { return MenuItem{Title: ""} }
 
-func AddMenuItem(id int, item MenuItem) {
+func addItem(id int, item MenuItem) {
 	if item.Title == "" {
 		C.add_separator_item()
 	} else {
 		// ignore errors
 		addMenuItem(id, item)
-		// titlePtr, _ := syscall.UTF16PtrFromString(item.Title)
-		// C.add_menu_item((C.int)(id), (*C.char)(unsafe.Pointer(titlePtr)), cbool(item.Disabled))
 	}
 }
 
