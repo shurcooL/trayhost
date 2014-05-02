@@ -2,12 +2,12 @@
 
 package trayhost
 
-import "C"
-
 import (
 	"syscall"
 	"unsafe"
 )
+
+import "C"
 
 func addMenuItem(id int, item MenuItem) {
 	// ignore errors

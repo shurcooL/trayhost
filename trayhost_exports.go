@@ -1,8 +1,6 @@
 package trayhost
 
-import (
-	"fmt"
-)
+import "fmt"
 
 import "C"
 
