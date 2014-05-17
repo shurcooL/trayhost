@@ -52,22 +52,26 @@ int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDa
     appMenu = [[NSMenu new] autorelease];
     [appMenu setAutoenablesItems:NO];
 
+    NSSize iconSize = NSMakeSize(16, 16);
+    NSImage* icon = [[NSImage alloc] initWithSize:iconSize];
     NSData* iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
-    NSImage* icon = [[NSImage alloc] initWithData:iconData];
+    [icon addRepresentation:[NSBitmapImageRep imageRepWithData:iconData]];
 
     struct image img;
     img.bytes = imageDataBytes;
     img.length = imageDataLen;
     img = invert_png_image(img);
 
+    NSImage* icon2 = [[NSImage alloc] initWithSize:iconSize];
     NSData* icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
-    NSImage* icon2 = [[NSImage alloc] initWithData:icon2Data];
+    [icon2 addRepresentation:[NSBitmapImageRep imageRepWithData:icon2Data]];
 
-    NSStatusItem* statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+    NSStatusItem* statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
     [statusItem setMenu:appMenu];
     [statusItem setImage:icon];
     [statusItem setAlternateImage:icon2];
     [statusItem setHighlightMode:YES];
+    [statusItem setToolTip:[NSString stringWithUTF8String:title]];
 
     return 0;
 }
