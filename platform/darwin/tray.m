@@ -6,6 +6,7 @@ NSMenu* appMenu;
 char* clipboardString;
 
 extern void tray_callback(int itemId);
+extern struct image invert_png_image(struct image img);
 
 @interface ManageHandler : NSObject
 + (void)manage:(id)sender;
@@ -25,7 +26,7 @@ void add_menu_item(int itemId, const char *title, int disabled) {
 
     [menuItem setRepresentedObject:[NSNumber numberWithInt:itemId]];
     [menuItem setTarget:[ManageHandler class]];
-    [menuItem setEnabled: !(BOOL)disabled];
+    [menuItem setEnabled:!(BOOL)disabled];
     [appMenu addItem:menuItem];
 }
 
@@ -41,23 +42,32 @@ void exit_loop() {
     [NSApp stop:nil];
 }
 
-int init(const char *title, unsigned char imageDataBytes[], unsigned int imageDataLen) {
-
+int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDataLen)
+{
     [NSAutoreleasePool new];
 
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
 
     appMenu = [[NSMenu new] autorelease];
-    [appMenu setAutoenablesItems: NO];
+    [appMenu setAutoenablesItems:NO];
 
-    NSData *iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
-    NSImage *icon = [[NSImage alloc] initWithData:iconData];
+    NSData* iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
+    NSImage* icon = [[NSImage alloc] initWithData:iconData];
+
+    struct image img;
+    img.bytes = imageDataBytes;
+    img.length = imageDataLen;
+    img = invert_png_image(img);
+
+    NSData* icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
+    NSImage* icon2 = [[NSImage alloc] initWithData:icon2Data];
 
     NSStatusItem* statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
     [statusItem setMenu:appMenu];
     [statusItem setImage:icon];
-    [statusItem setHighlightMode:NO];
+    [statusItem setAlternateImage:icon2];
+    [statusItem setHighlightMode:YES];
 
     return 0;
 }
@@ -92,11 +102,6 @@ const char* get_clipboard_string()
 
     return clipboardString;
 }
-
-struct image {
-    const void* bytes;
-    int         length;
-};
 
 // TODO: Support for all other types of image besides PNG.
 struct image get_clipboard_image()

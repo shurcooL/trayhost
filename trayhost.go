@@ -14,6 +14,7 @@ import (
 #cgo darwin CFLAGS: -DDARWIN -x objective-c
 #cgo darwin LDFLAGS: -framework Cocoa
 #include <stdlib.h>
+#include "platform/common.h"
 #include "platform/platform.h"
 */
 import "C"
@@ -39,7 +40,6 @@ func Initialize(title string, imageData []byte, items []MenuItem) {
 	sliceHeader.Cap = len(imageData)
 	sliceHeader.Len = len(imageData)
 	sliceHeader.Data = uintptr(cImageData)
-
 	for i, v := range imageData {
 		cImageDataSlice[i] = C.uchar(v)
 	}
