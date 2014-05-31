@@ -47,6 +47,7 @@ func invert_png_image(img C.struct_image) C.struct_image {
 	}
 
 	return C.struct_image{
+		kind:   C.char(ImageKindPng),
 		bytes:  unsafe.Pointer(&cImageDataSlice[0]),
 		length: C.int(len(imageData)),
 	}

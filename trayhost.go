@@ -109,17 +109,28 @@ func GetClipboardString() (string, error) {
 	return C.GoString(cs), nil
 }
 
+type ImageKind uint8
+
+const (
+	ImageKindNone ImageKind = iota
+	ImageKindPng
+	ImageKindTiff
+)
+
+type Image struct {
+	Kind  ImageKind
+	Bytes []byte
+}
+
 // GetClipboardString returns the contents of the system clipboard, if it
 // contains or is convertible to an image.
 //
 // This function may only be called from the main thread.
-//
-// TODO: Currently assumes PNG. Support other types, return type.
-func GetClipboardImage() ([]byte, error) {
+func GetClipboardImage() (Image, error) {
 	img := C.get_clipboard_image()
-	if img.bytes == nil {
-		return nil, errors.New("Can't get clipboard image.")
+	if img.kind == 0 {
+		return Image{}, errors.New("Can't get clipboard image.")
 	}
 
-	return C.GoBytes(img.bytes, img.length), nil
+	return Image{ImageKind(img.kind), C.GoBytes(img.bytes, img.length)}, nil
 }
