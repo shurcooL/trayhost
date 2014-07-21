@@ -134,3 +134,10 @@ func GetClipboardImage() (Image, error) {
 
 	return Image{ImageKind(img.kind), C.GoBytes(img.bytes, img.length)}, nil
 }
+
+// ---
+
+// TODO: Figure out what the neccessary parameters are, and add them.
+func DisplayNotification() {
+	C.display_notification()
+}

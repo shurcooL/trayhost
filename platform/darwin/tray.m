@@ -1,26 +1,53 @@
-// #cgo CFLAGS: -DDARWIN -x objective-c
-// #cgo LDFLAGS: -framework Cocoa
 #import <Cocoa/Cocoa.h>
 
-NSMenu* appMenu;
-char* clipboardString;
+NSMenu * appMenu;
+char * clipboardString;
 
 extern void tray_callback(int itemId);
 extern struct image invert_png_image(struct image img);
 
-@interface ManageHandler : NSObject
+@interface ManageHandler : NSObject<NSUserNotificationCenterDelegate>
 + (void)manage:(id)sender;
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification;
+- (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification;
+- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification;
 @end
+
+ManageHandler * uncDelegate;
 
 @implementation ManageHandler
 + (void)manage:(id)sender {
     tray_callback([[sender representedObject] intValue]);
 }
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
+    NSLog(@"in tray.m shouldPresentNotification\n");
+    return YES;
+}
+- (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
+    NSLog(@"in tray.m didActivateNotification\n");
+    [center removeDeliveredNotification: notification];
+}
+- (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {
+    NSLog(@"in tray.m didDeliverNotification\n");
+    //[center removeDeliveredNotification: notification];
+
+    NSLog(@"starting timer for %p\n", notification);
+    [NSTimer scheduledTimerWithTimeInterval:5.0
+                                     target:uncDelegate
+                                   selector:@selector(notifyPause1:)
+                                   userInfo:notification
+                                    repeats:NO];
+}
+- (void)notifyPause1:(NSTimer *)timer {
+    NSUserNotification * notification = [timer userInfo];
+    NSLog(@"in notifyPause1 %p\n", notification);
+    [[NSUserNotificationCenter defaultUserNotificationCenter] removeDeliveredNotification: notification];
+}
 @end
 
 void add_menu_item(int itemId, const char *title, int disabled) {
-    NSString* manageTitle = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
-    NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle:manageTitle
+    NSString * manageTitle = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
+    NSMenuItem * menuItem = [[[NSMenuItem alloc] initWithTitle:manageTitle
                                 action:@selector(manage:) keyEquivalent:@""]
                                 autorelease];
 
@@ -39,11 +66,13 @@ void native_loop() {
 }
 
 void exit_loop() {
+    // Clear all notifications
+    [[NSUserNotificationCenter defaultUserNotificationCenter] removeAllDeliveredNotifications];
+
     [NSApp stop:nil];
 }
 
-int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDataLen)
-{
+int init(const char * title, unsigned char imageDataBytes[], unsigned int imageDataLen) {
     [NSAutoreleasePool new];
 
     [NSApplication sharedApplication];
@@ -52,9 +81,21 @@ int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDa
     appMenu = [[NSMenu new] autorelease];
     [appMenu setAutoenablesItems:NO];
 
+    // Set self as NSUserNotificationCenter delegate
+    uncDelegate = [[ManageHandler alloc] init];
+    NSLog(@"[NSUserNotificationCenter defaultUserNotificationCenter] -> %p", [NSUserNotificationCenter defaultUserNotificationCenter]);
+    [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate: uncDelegate];
+
+    // If we were opened from a user notification, do the corresponding action
+    /*{
+        NSUserNotification * launchNotification = [[aNotification userInfo] objectForKey: NSApplicationLaunchUserNotificationKey];
+        if (launchNotification)
+            [self userNotificationCenter: nil didActivateNotification: launchNotification];
+    }*/
+
     NSSize iconSize = NSMakeSize(16, 16);
-    NSImage* icon = [[NSImage alloc] initWithSize:iconSize];
-    NSData* iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
+    NSImage * icon = [[NSImage alloc] initWithSize:iconSize];
+    NSData * iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
     [icon addRepresentation:[NSBitmapImageRep imageRepWithData:iconData]];
 
     struct image img;
@@ -63,11 +104,11 @@ int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDa
     img.length = imageDataLen;
     img = invert_png_image(img);
 
-    NSImage* icon2 = [[NSImage alloc] initWithSize:iconSize];
-    NSData* icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
+    NSImage * icon2 = [[NSImage alloc] initWithSize:iconSize];
+    NSData * icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
     [icon2 addRepresentation:[NSBitmapImageRep imageRepWithData:icon2Data]];
 
-    NSStatusItem* statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
+    NSStatusItem * statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
     [statusItem setMenu:appMenu];
     [statusItem setImage:icon];
     [statusItem setAlternateImage:icon2];
@@ -77,25 +118,23 @@ int init(const char* title, unsigned char imageDataBytes[], unsigned int imageDa
     return 0;
 }
 
-void set_clipboard_string(const char* string)
-{
-    NSArray* types = [NSArray arrayWithObjects:NSPasteboardTypeString, nil];
+void set_clipboard_string(const char * string) {
+    NSArray * types = [NSArray arrayWithObjects:NSPasteboardTypeString, nil];
 
-    NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
+    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
     [pasteboard declareTypes:types owner:nil];
     [pasteboard setString:[NSString stringWithUTF8String:string]
                   forType:NSPasteboardTypeString];
 }
 
-const char* get_clipboard_string()
-{
-    NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
+const char * get_clipboard_string() {
+    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
 
     if (![[pasteboard types] containsObject:NSPasteboardTypeString]) {
         return NULL;
     }
 
-    NSString* object = [pasteboard stringForType:NSPasteboardTypeString];
+    NSString * object = [pasteboard stringForType:NSPasteboardTypeString];
     if (!object) {
         return NULL;
     }
@@ -106,10 +145,9 @@ const char* get_clipboard_string()
     return clipboardString;
 }
 
-struct image get_clipboard_image()
-{
-    NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];
-    NSData* object = NULL;
+struct image get_clipboard_image() {
+    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
+    NSData * object = NULL;
 
     struct image img;
     img.kind = 0;
@@ -132,4 +170,15 @@ struct image get_clipboard_image()
     }
 
     return img;
+}
+
+void display_notification() {
+    NSUserNotification * notification = [[NSUserNotification alloc] init];
+    [notification setTitle: @"Image Uploaded"];
+    [notification setInformativeText: @"Its URL is now in your Clipboard."];
+    [notification setSoundName: NSUserNotificationDefaultSoundName];
+
+    NSUserNotificationCenter * center = [NSUserNotificationCenter defaultUserNotificationCenter];
+    [center deliverNotification: notification];
+    //[center removeDeliveredNotification: notification];
 }
