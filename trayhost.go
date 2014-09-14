@@ -3,6 +3,7 @@ package trayhost
 import (
 	"errors"
 	"reflect"
+	"time"
 	"unsafe"
 )
 
@@ -27,12 +28,12 @@ type MenuItem struct {
 	Handler  func()
 }
 
-// Run the host system's event loop
+// Run the host system's event loop.
 func Initialize(title string, imageData []byte, items []MenuItem) {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
 
-	// Copy the image data into unmanaged memory
+	// Copy the image data into unmanaged memory.
 	cImageData := C.malloc(C.size_t(len(imageData)))
 	defer C.free(cImageData)
 	var cImageDataSlice []C.uchar
@@ -84,6 +85,8 @@ func cbool(b bool) C.int {
 		return 0
 	}
 }
+
+// ---
 
 // SetClipboardString sets the system clipboard to the specified UTF-8 encoded
 // string.
@@ -137,7 +140,23 @@ func GetClipboardImage() (Image, error) {
 
 // ---
 
-// TODO: Figure out what the neccessary parameters are, and add them.
-func DisplayNotification() {
-	C.display_notification()
+// Notification represents a user notification.
+type Notification struct {
+	Title string // Title of user notification.
+	Body  string // Body of user notification.
+
+	// Timeout specifies time after which the notification is cleared.
+	//
+	// A Timeout of zero means no timeout.
+	Timeout time.Duration
+}
+
+// Display displays the user notification.
+func (n Notification) Display() {
+	cTitle := C.CString(n.Title)
+	defer C.free(unsafe.Pointer(cTitle))
+	cBody := C.CString(n.Body)
+	defer C.free(unsafe.Pointer(cBody))
+
+	C.display_notification(cTitle, cBody, C.double(n.Timeout.Seconds()))
 }

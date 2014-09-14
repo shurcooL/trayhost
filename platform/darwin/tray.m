@@ -31,22 +31,25 @@ ManageHandler * uncDelegate;
     NSLog(@"in tray.m didDeliverNotification\n");
     //[center removeDeliveredNotification: notification];
 
-    NSLog(@"starting timer for %p\n", notification);
-    [NSTimer scheduledTimerWithTimeInterval:5.0
-                                     target:uncDelegate
-                                   selector:@selector(notifyPause1:)
-                                   userInfo:notification
-                                    repeats:NO];
+    NSTimeInterval timeout = [[[notification userInfo] objectForKey:@"timeout"] doubleValue];
+    if (timeout > 0.0) {
+        NSLog(@"starting timer (timeout = %f) for %p\n", timeout, notification);
+        [NSTimer scheduledTimerWithTimeInterval:timeout
+                                         target:uncDelegate
+                                       selector:@selector(clearNotificationTimer:)
+                                       userInfo:notification
+                                        repeats:NO];
+    }
 }
-- (void)notifyPause1:(NSTimer *)timer {
+- (void)clearNotificationTimer:(NSTimer *)timer {
     NSUserNotification * notification = [timer userInfo];
-    NSLog(@"in notifyPause1 %p\n", notification);
+    NSLog(@"in clearNotificationTimer %p\n", notification);
     [[NSUserNotificationCenter defaultUserNotificationCenter] removeDeliveredNotification: notification];
 }
 @end
 
-void add_menu_item(int itemId, const char *title, int disabled) {
-    NSString * manageTitle = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
+void add_menu_item(int itemId, const char * title, int disabled) {
+    NSString * manageTitle = [NSString stringWithUTF8String:title];
     NSMenuItem * menuItem = [[[NSMenuItem alloc] initWithTitle:manageTitle
                                 action:@selector(manage:) keyEquivalent:@""]
                                 autorelease];
@@ -66,7 +69,7 @@ void native_loop() {
 }
 
 void exit_loop() {
-    // Clear all notifications
+    // Clear all notifications.
     [[NSUserNotificationCenter defaultUserNotificationCenter] removeAllDeliveredNotifications];
 
     [NSApp stop:nil];
@@ -81,12 +84,12 @@ int init(const char * title, unsigned char imageDataBytes[], unsigned int imageD
     appMenu = [[NSMenu new] autorelease];
     [appMenu setAutoenablesItems:NO];
 
-    // Set self as NSUserNotificationCenter delegate
+    // Set self as NSUserNotificationCenter delegate.
     uncDelegate = [[ManageHandler alloc] init];
     NSLog(@"[NSUserNotificationCenter defaultUserNotificationCenter] -> %p", [NSUserNotificationCenter defaultUserNotificationCenter]);
     [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate: uncDelegate];
 
-    // If we were opened from a user notification, do the corresponding action
+    // If we were opened from a user notification, do the corresponding action.
     /*{
         NSUserNotification * launchNotification = [[aNotification userInfo] objectForKey: NSApplicationLaunchUserNotificationKey];
         if (launchNotification)
@@ -172,11 +175,14 @@ struct image get_clipboard_image() {
     return img;
 }
 
-void display_notification() {
+void display_notification(const char * title, const char * body, double timeout) {
     NSUserNotification * notification = [[NSUserNotification alloc] init];
-    [notification setTitle: @"Image Uploaded"];
-    [notification setInformativeText: @"Its URL is now in your Clipboard."];
+    [notification setTitle: [NSString stringWithUTF8String:title]];
+    [notification setInformativeText: [NSString stringWithUTF8String:body]];
     [notification setSoundName: NSUserNotificationDefaultSoundName];
+
+    NSDictionary * dictionary = [NSDictionary dictionaryWithObject:[NSNumber numberWithDouble:timeout] forKey:@"timeout"];
+    [notification setUserInfo: dictionary];
 
     NSUserNotificationCenter * center = [NSUserNotificationCenter defaultUserNotificationCenter];
     [center deliverNotification: notification];
