@@ -79,7 +79,10 @@ int init(const char * title, unsigned char imageDataBytes[], unsigned int imageD
     [NSAutoreleasePool new];
 
     [NSApplication sharedApplication];
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
+
+    // This is needed to avoid having a dock icon (and entry in Cmd+Tab list).
+    // [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    // However, it causes the tooltip to not appear. So LSUIElement should be used instead.
 
     appMenu = [[NSMenu new] autorelease];
     [appMenu setAutoenablesItems:NO];
