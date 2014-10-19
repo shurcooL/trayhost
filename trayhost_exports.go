@@ -31,6 +31,13 @@ func tray_callback(itemId C.int) {
 	}
 }
 
+//export tray_enabled
+func tray_enabled(itemId C.int) C.int {
+	item := menuItems[itemId]
+
+	return cbool(item.Enabled == nil || item.Enabled())
+}
+
 //export invert_png_image
 func invert_png_image(img C.struct_image) C.struct_image {
 	imageData := invertPngImage(C.GoBytes(img.bytes, img.length))

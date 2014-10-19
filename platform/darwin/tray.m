@@ -4,10 +4,12 @@ NSMenu * appMenu;
 char * clipboardString;
 
 extern void tray_callback(int itemId);
+extern BOOL tray_enabled(int itemId);
 extern struct image invert_png_image(struct image img);
 
 @interface ManageHandler : NSObject<NSUserNotificationCenterDelegate>
-+ (void)manage:(id)sender;
+- (void)manage:(id)sender;
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem;
 - (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification;
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification;
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification;
@@ -16,8 +18,12 @@ extern struct image invert_png_image(struct image img);
 ManageHandler * uncDelegate;
 
 @implementation ManageHandler
-+ (void)manage:(id)sender {
+- (void)manage:(id)sender {
     tray_callback([[sender representedObject] intValue]);
+}
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+    //NSLog(@"in tray.m validateMenuItem\n");
+    return tray_enabled([[menuItem representedObject] intValue]);
 }
 - (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification {
     NSLog(@"in tray.m shouldPresentNotification\n");
@@ -55,8 +61,7 @@ void add_menu_item(int itemId, const char * title, int disabled) {
                                 autorelease];
 
     [menuItem setRepresentedObject:[NSNumber numberWithInt:itemId]];
-    [menuItem setTarget:[ManageHandler class]];
-    [menuItem setEnabled:!(BOOL)disabled];
+    [menuItem setTarget:uncDelegate];
     [appMenu addItem:menuItem];
 }
 
@@ -85,7 +90,6 @@ int init(const char * title, unsigned char imageDataBytes[], unsigned int imageD
     // However, it causes the tooltip to not appear. So LSUIElement should be used instead.
 
     appMenu = [[NSMenu new] autorelease];
-    [appMenu setAutoenablesItems:NO];
 
     // Set self as NSUserNotificationCenter delegate.
     uncDelegate = [[ManageHandler alloc] init];

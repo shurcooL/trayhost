@@ -23,9 +23,9 @@ import "C"
 var menuItems []MenuItem
 
 type MenuItem struct {
-	Title    string
-	Disabled bool
-	Handler  func()
+	Title   string
+	Enabled func() bool // nil means always enabled.
+	Handler func()
 }
 
 // Run the host system's event loop.
@@ -45,7 +45,7 @@ func Initialize(title string, imageData []byte, items []MenuItem) {
 		cImageDataSlice[i] = C.uchar(v)
 	}
 
-	// Initialize menu
+	// Initialize menu.
 	C.init(cTitle, &cImageDataSlice[0], C.uint(len(imageData)))
 
 	menuItems = items
