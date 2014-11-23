@@ -5,6 +5,7 @@ char * clipboardString;
 
 extern void tray_callback(int itemId);
 extern BOOL tray_enabled(int itemId);
+extern void notification_callback();
 extern struct image invert_png_image(struct image img);
 
 @interface ManageHandler : NSObject<NSUserNotificationCenterDelegate>
@@ -32,6 +33,10 @@ ManageHandler * uncDelegate;
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
     NSLog(@"in tray.m didActivateNotification\n");
     [center removeDeliveredNotification: notification];
+
+    // Call the handler for notification activation.
+    int notificationId = [[[notification userInfo] objectForKey:@"notificationId"] intValue];
+    notification_callback(notificationId);
 }
 - (void)userNotificationCenter:(NSUserNotificationCenter *)center didDeliverNotification:(NSUserNotification *)notification {
     NSLog(@"in tray.m didDeliverNotification\n");
@@ -182,13 +187,16 @@ struct image get_clipboard_image() {
     return img;
 }
 
-void display_notification(const char * title, const char * body, double timeout) {
+void display_notification(int notificationId, const char * title, const char * body, double timeout) {
     NSUserNotification * notification = [[NSUserNotification alloc] init];
     [notification setTitle: [NSString stringWithUTF8String:title]];
     [notification setInformativeText: [NSString stringWithUTF8String:body]];
     [notification setSoundName: NSUserNotificationDefaultSoundName];
 
-    NSDictionary * dictionary = [NSDictionary dictionaryWithObject:[NSNumber numberWithDouble:timeout] forKey:@"timeout"];
+    NSDictionary * dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+        [NSNumber numberWithDouble:timeout],     @"timeout",
+        [NSNumber numberWithInt:notificationId], @"notificationId",
+        nil];
     [notification setUserInfo: dictionary];
 
     NSUserNotificationCenter * center = [NSUserNotificationCenter defaultUserNotificationCenter];

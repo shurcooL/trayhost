@@ -140,6 +140,9 @@ func GetClipboardImage() (Image, error) {
 
 // ---
 
+// TODO: Garbage collection. Really only need this until the notification is cleared, so its Handler is accessible.
+var notifications []Notification
+
 // Notification represents a user notification.
 type Notification struct {
 	Title string // Title of user notification.
@@ -149,6 +152,9 @@ type Notification struct {
 	//
 	// A Timeout of zero means no timeout.
 	Timeout time.Duration
+
+	// Activation (click) handler.
+	Handler func()
 }
 
 // Display displays the user notification.
@@ -158,5 +164,9 @@ func (n Notification) Display() {
 	cBody := C.CString(n.Body)
 	defer C.free(unsafe.Pointer(cBody))
 
-	C.display_notification(cTitle, cBody, C.double(n.Timeout.Seconds()))
+	// TODO: Move out of Display.
+	notificationId := (C.int)(len(notifications))
+	notifications = append(notifications, n)
+
+	C.display_notification(notificationId, cTitle, cBody, C.double(n.Timeout.Seconds()))
 }
