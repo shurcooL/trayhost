@@ -7,6 +7,7 @@ struct image {
     int         length;
 };
 
+#define IMAGE_KIND_NONE (0)
 #define IMAGE_KIND_PNG  (1)
 #define IMAGE_KIND_TIFF (2)
 

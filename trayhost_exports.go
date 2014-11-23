@@ -49,26 +49,38 @@ func notification_callback(notificationId C.int) {
 	}
 }
 
+func create_image(image Image) (C.struct_image, func()) {
+	img := C.struct_image{
+		kind: C.char(image.Kind),
+	}
+
+	if len(image.Bytes) == 0 {
+		return img, func() {}
+	}
+
+	// Copy the image data into unmanaged memory.
+	cImageData := C.malloc(C.size_t(len(image.Bytes)))
+	freeImg := func() { C.free(cImageData) }
+	var cImageDataSlice []C.uchar
+	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cImageDataSlice))
+	sliceHeader.Cap = len(image.Bytes)
+	sliceHeader.Len = len(image.Bytes)
+	sliceHeader.Data = uintptr(cImageData)
+	for i, b := range image.Bytes {
+		cImageDataSlice[i] = C.uchar(b)
+	}
+
+	img.bytes = unsafe.Pointer(&cImageDataSlice[0])
+	img.length = C.int(len(image.Bytes))
+
+	return img, freeImg
+}
+
 //export invert_png_image
 func invert_png_image(img C.struct_image) C.struct_image {
 	imageData := invertPngImage(C.GoBytes(img.bytes, img.length))
-
-	cImageData := C.malloc(C.size_t(len(imageData)))
-	defer C.free(cImageData)
-	var cImageDataSlice []C.uchar
-	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cImageDataSlice))
-	sliceHeader.Cap = len(imageData)
-	sliceHeader.Len = len(imageData)
-	sliceHeader.Data = uintptr(cImageData)
-	for i, v := range imageData {
-		cImageDataSlice[i] = C.uchar(v)
-	}
-
-	return C.struct_image{
-		kind:   C.char(ImageKindPng),
-		bytes:  unsafe.Pointer(&cImageDataSlice[0]),
-		length: C.int(len(imageData)),
-	}
+	img, _ = create_image(Image{Kind: ImageKindPng, Bytes: imageData})
+	return img
 }
 
 func invertPngImage(imageData []byte) []byte {

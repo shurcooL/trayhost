@@ -85,7 +85,7 @@ void exit_loop() {
     [NSApp stop:nil];
 }
 
-int init(const char * title, unsigned char imageDataBytes[], unsigned int imageDataLen) {
+int init(const char * title, struct image img) {
     [NSAutoreleasePool new];
 
     [NSApplication sharedApplication];
@@ -110,13 +110,9 @@ int init(const char * title, unsigned char imageDataBytes[], unsigned int imageD
 
     NSSize iconSize = NSMakeSize(16, 16);
     NSImage * icon = [[NSImage alloc] initWithSize:iconSize];
-    NSData * iconData = [NSData dataWithBytes:imageDataBytes length:imageDataLen];
+    NSData * iconData = [NSData dataWithBytes:img.bytes length:img.length];
     [icon addRepresentation:[NSBitmapImageRep imageRepWithData:iconData]];
 
-    struct image img;
-    img.kind = IMAGE_KIND_PNG;
-    img.bytes = imageDataBytes;
-    img.length = imageDataLen;
     img = invert_png_image(img);
 
     NSImage * icon2 = [[NSImage alloc] initWithSize:iconSize];
@@ -187,11 +183,16 @@ struct image get_clipboard_image() {
     return img;
 }
 
-void display_notification(int notificationId, const char * title, const char * body, double timeout) {
+void display_notification(int notificationId, const char * title, const char * body, struct image img, double timeout) {
     NSUserNotification * notification = [[NSUserNotification alloc] init];
     [notification setTitle: [NSString stringWithUTF8String:title]];
     [notification setInformativeText: [NSString stringWithUTF8String:body]];
     [notification setSoundName: NSUserNotificationDefaultSoundName];
+
+    if (img.kind != IMAGE_KIND_NONE) {
+        NSImage * image = [[NSImage alloc] initWithData:[NSData dataWithBytes:img.bytes length:img.length]];
+        [notification setContentImage: image];
+    }
 
     NSDictionary * dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithDouble:timeout],     @"timeout",

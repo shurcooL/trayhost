@@ -2,7 +2,6 @@ package trayhost
 
 import (
 	"errors"
-	"reflect"
 	"time"
 	"unsafe"
 )
@@ -32,21 +31,11 @@ type MenuItem struct {
 func Initialize(title string, imageData []byte, items []MenuItem) {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
-
-	// Copy the image data into unmanaged memory.
-	cImageData := C.malloc(C.size_t(len(imageData)))
-	defer C.free(cImageData)
-	var cImageDataSlice []C.uchar
-	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cImageDataSlice))
-	sliceHeader.Cap = len(imageData)
-	sliceHeader.Len = len(imageData)
-	sliceHeader.Data = uintptr(cImageData)
-	for i, v := range imageData {
-		cImageDataSlice[i] = C.uchar(v)
-	}
+	img, freeImg := create_image(Image{Kind: ImageKindPng, Bytes: imageData})
+	defer freeImg()
 
 	// Initialize menu.
-	C.init(cTitle, &cImageDataSlice[0], C.uint(len(imageData)))
+	C.init(cTitle, img)
 
 	menuItems = items
 	for id, item := range menuItems {
@@ -135,7 +124,7 @@ func GetClipboardImage() (Image, error) {
 		return Image{}, errors.New("Can't get clipboard image.")
 	}
 
-	return Image{ImageKind(img.kind), C.GoBytes(img.bytes, img.length)}, nil
+	return Image{Kind: ImageKind(img.kind), Bytes: C.GoBytes(img.bytes, img.length)}, nil
 }
 
 // ---
@@ -147,6 +136,7 @@ var notifications []Notification
 type Notification struct {
 	Title string // Title of user notification.
 	Body  string // Body of user notification.
+	Image Image  // Image shown in the content of user notification.
 
 	// Timeout specifies time after which the notification is cleared.
 	//
@@ -163,10 +153,12 @@ func (n Notification) Display() {
 	defer C.free(unsafe.Pointer(cTitle))
 	cBody := C.CString(n.Body)
 	defer C.free(unsafe.Pointer(cBody))
+	img, freeImg := create_image(n.Image)
+	defer freeImg()
 
 	// TODO: Move out of Display.
 	notificationId := (C.int)(len(notifications))
 	notifications = append(notifications, n)
 
-	C.display_notification(notificationId, cTitle, cBody, C.double(n.Timeout.Seconds()))
+	C.display_notification(notificationId, cTitle, cBody, img, C.double(n.Timeout.Seconds()))
 }
