@@ -127,6 +127,28 @@ func GetClipboardImage() (Image, error) {
 	return Image{Kind: ImageKind(img.kind), Bytes: C.GoBytes(img.bytes, img.length)}, nil
 }
 
+/*func GetClipboardFile() (Image, error) {
+	img := C.get_clipboard_file()
+	if img.kind == 0 {
+		return Image{}, errors.New("Can't get clipboard file.")
+	}
+
+	return Image{Kind: ImageKind(img.kind), Bytes: C.GoBytes(img.bytes, img.length)}, nil
+}*/
+
+func GetClipboardFiles() ([]string, error) {
+	files := C.get_clipboard_files()
+
+	namesSlice := make([]string, int(files.count))
+	for i := 0; i < int(files.count); i++ {
+		var x *C.char
+		p := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(files.names)) + uintptr(i)*unsafe.Sizeof(x)))
+		namesSlice[i] = C.GoString(*p)
+	}
+
+	return namesSlice, nil
+}
+
 // ---
 
 // TODO: Garbage collection. Really only need this until the notification is cleared, so its Handler is accessible.
