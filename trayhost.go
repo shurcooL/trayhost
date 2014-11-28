@@ -107,11 +107,13 @@ const (
 	ImageKindNone ImageKind = iota
 	ImageKindPng
 	ImageKindTiff
+	ImageKindMov
 )
 
 type Image struct {
-	Kind  ImageKind
-	Bytes []byte
+	Kind        ImageKind // TODO: Remove in favour of ContentType.
+	ContentType string
+	Bytes       []byte
 }
 
 // GetClipboardString returns the contents of the system clipboard, if it
