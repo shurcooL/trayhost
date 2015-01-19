@@ -10,7 +10,7 @@
 #include <string.h>
 #include <libappindicator/app-indicator.h>
 
-static char *icon = NULL;
+static const char *icon = NULL;
 static size_t iconSize = 0;
 static const char *menu_title = NULL;
 static const char *url = NULL;
@@ -24,6 +24,25 @@ extern void tray_callback(int itemId);
 void _tray_callback(GtkMenuItem *item, gpointer user_data)
 {
   tray_callback(GPOINTER_TO_INT(user_data));
+}
+
+void display_notification(int id, const char* title, const char* body, struct image imageData, double duration)
+{
+}
+
+struct image get_clipboard_image()
+{
+  struct image i;  
+  return i;
+}
+
+char* get_clipboard_string()
+{
+  return NULL;
+}
+
+void set_clipboard_string(const char* cp)
+{
 }
 
 void add_menu_item(int id, const char* title, int disabled) {
@@ -96,15 +115,15 @@ void create_status_icon()
     gtk_status_icon_set_visible(tray_icon, TRUE);
 }
 
-void init(const char* title, unsigned char *imageData, unsigned int imageDataLen)
+void init(const char* title, struct image imageData)
 {
     int argc = 0;
     char *argv[] = { "" };
     gtk_init(&argc, (char***)&argv);
 
     menu_title = title;
-    icon = imageData;
-    iconSize = imageDataLen;
+    icon = imageData.bytes;
+    iconSize = imageData.length;
     menu = gtk_menu_new();
     void *handle;
 
