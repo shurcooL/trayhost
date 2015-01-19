@@ -26,21 +26,25 @@ void _tray_callback(GtkMenuItem *item, gpointer user_data)
   tray_callback(GPOINTER_TO_INT(user_data));
 }
 
+// TODO: Implement.
 void display_notification(int id, const char* title, const char* body, struct image imageData, double duration)
 {
 }
 
+// TODO: Implement.
 struct image get_clipboard_image()
 {
   struct image i;  
   return i;
 }
 
+// TODO: Implement.
 char* get_clipboard_string()
 {
   return NULL;
 }
 
+// TODO: Implement.
 void set_clipboard_string(const char* cp)
 {
 }
