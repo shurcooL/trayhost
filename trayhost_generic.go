@@ -5,5 +5,6 @@ package trayhost
 import "C"
 
 func addMenuItem(id int, item MenuItem) {
-	cAddMenuItem((C.int)(id), C.CString(item.Title), cbool(true))
+	enabled := (item.Enabled == nil) || item.Enabled()
+	cAddMenuItem((C.int)(id), C.CString(item.Title), cbool(enabled))
 }
