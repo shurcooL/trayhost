@@ -138,147 +138,64 @@ void set_clipboard_string(const char * string) {
                   forType:NSPasteboardTypeString];
 }
 
-const char * get_clipboard_string() {
-    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
+struct clipboard_content get_clipboard_content() {
+    struct clipboard_content cc;
+    cc.text = NULL;
+    cc.image.kind = NULL;
+    cc.image.bytes = NULL;
+    cc.image.length = 0;
+    cc.files.names = NULL;
+    cc.files.count = 0;
 
-    if (![[pasteboard types] containsObject:NSPasteboardTypeString]) {
-        return NULL;
-    }
-
-    NSString * object = [pasteboard stringForType:NSPasteboardTypeString];
-    if (!object) {
-        return NULL;
-    }
-
-    free(clipboardString);
-    clipboardString = strdup([object UTF8String]);
-
-    return clipboardString;
-}
-
-struct image get_clipboard_image() {
     NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
     NSData * object = NULL;
+    NSString * string = NULL;
+    NSArray * filenames = NULL;
 
-    struct image img;
-    img.kind = 0;
-    img.bytes = NULL;
-    img.length = 0;
+    if ([[pasteboard types] containsObject:NSFilenamesPboardType] &&
+        (filenames = [pasteboard propertyListForType:NSFilenamesPboardType]) != NULL) {
 
-    // TODO: Fix memory leak.
-    /*if ([[pasteboard types] containsObject:NSFilenamesPboardType] &&
-        (object = [pasteboard dataForType:NSFilenamesPboardType]) != NULL) {
-
-        //NSArray * filenames = [pasteboard propertyListForType:NSFilenamesPboardType];
-
-        NSLog(@"stringForType = %@", [pasteboard stringForType:NSFilenamesPboardType]);
-
-        img.kind = 56;
-    } else */if ([[pasteboard types] containsObject:NSPasteboardTypePNG] &&
-        (object = [pasteboard dataForType:NSPasteboardTypePNG]) != NULL) {
-
-        img.kind = IMAGE_KIND_PNG;
-        img.bytes = [object bytes];
-        img.length = [object length];
-    } else if ([[pasteboard types] containsObject:NSPasteboardTypeTIFF] &&
-        (object = [pasteboard dataForType:NSPasteboardTypeTIFF]) != NULL) {
-
-        img.kind = IMAGE_KIND_TIFF;
-        img.bytes = [object bytes];
-        img.length = [object length];
-    }
-
-    return img;
-}
-
-/*struct image get_clipboard_file() {
-    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
-    NSData * object = NULL;
-
-    struct image img;
-    img.kind = 0;
-    img.bytes = NULL;
-    img.length = 0;
-
-    /*NSURL * url = [NSURL URLFromPasteboard:pasteboard];
-    if (url == NULL) {
-        return img;
-    }* /
-
-    if ((object = [pasteboard dataForType:NSFilenamesPboardType]) != NULL) {
-        NSArray * filenames = [pasteboard propertyListForType:NSFilenamesPboardType];
-
-        NSLog(@"filenames = %@", filenames);
-
-        img.kind = 77;
-    }
-
-    return img;
-}*/
-
-struct files get_clipboard_files() {
-    NSPasteboard * pasteboard = [NSPasteboard generalPasteboard];
-    NSData * object = NULL;
-
-    struct files files;
-    files.names = NULL;
-    files.count = 0;
-
-    if ((object = [pasteboard dataForType:NSFilenamesPboardType]) != NULL) {
-        NSArray * filenames = [pasteboard propertyListForType:NSFilenamesPboardType];
-
-        NSLog(@"filenames = %@", filenames);
+        //NSLog(@"filenames = %@", filenames);
 
         const int count = [filenames count];
         if (count) {
             NSEnumerator * e = [filenames objectEnumerator];
-            char ** names = calloc(count, sizeof(char*));
+            char ** names = calloc(count, sizeof(char *));
             for (int i = 0; i < count; i++) {
                 names[i] = strdup([[e nextObject] UTF8String]);
             }
 
-            files.names = (const char**)(names);
-            files.count = count;
+            cc.files.names = (const char **)(names);
+            cc.files.count = count;
 
             // TODO: Fix memory leak.
             /*for (i = 0; i < count; i++)
                 free(names[i]);
             free(names);*/
         }
-    }
-
-    return files;
-}
-
-/*void get_clipboard_content() {
-    struct image img;
-    img.kind = 0;
-    img.bytes = NULL;
-    img.length = 0;
-
-    // TODO: Fix memory leak.
-    if ([[pasteboard types] containsObject:NSFilenamesPboardType] &&
-        (object = [pasteboard dataForType:NSFilenamesPboardType]) != NULL) {
-
-        //NSArray * filenames = [pasteboard propertyListForType:NSFilenamesPboardType];
-
-        NSLog(@"stringForType = %@", [pasteboard stringForType:NSFilenamesPboardType]);
-
-        img.kind = 56;
     } else if ([[pasteboard types] containsObject:NSPasteboardTypePNG] &&
         (object = [pasteboard dataForType:NSPasteboardTypePNG]) != NULL) {
 
-        img.kind = IMAGE_KIND_PNG;
-        img.bytes = [object bytes];
-        img.length = [object length];
+        cc.image.kind = "png";
+        cc.image.bytes = [object bytes];
+        cc.image.length = [object length];
     } else if ([[pasteboard types] containsObject:NSPasteboardTypeTIFF] &&
         (object = [pasteboard dataForType:NSPasteboardTypeTIFF]) != NULL) {
 
-        img.kind = IMAGE_KIND_TIFF;
-        img.bytes = [object bytes];
-        img.length = [object length];
+        cc.image.kind = "tiff";
+        cc.image.bytes = [object bytes];
+        cc.image.length = [object length];
+    } else if ([[pasteboard types] containsObject:NSPasteboardTypeString] &&
+        (string = [pasteboard stringForType:NSPasteboardTypeString]) != NULL) {
+
+        free(clipboardString); // Free previous string (noop first time this is called since the value is NULL).
+        clipboardString = strdup([string UTF8String]);
+
+        cc.text = clipboardString;
     }
-}*/
+
+    return cc;
+}
 
 void display_notification(int notificationId, const char * title, const char * body, struct image img, double timeout) {
     NSUserNotification * notification = [[NSUserNotification alloc] init];
@@ -286,7 +203,7 @@ void display_notification(int notificationId, const char * title, const char * b
     [notification setInformativeText: [NSString stringWithUTF8String:body]];
     [notification setSoundName: NSUserNotificationDefaultSoundName];
 
-    if (img.kind != IMAGE_KIND_NONE) {
+    if (img.kind != NULL) {
         NSImage * image = [[NSImage alloc] initWithData:[NSData dataWithBytes:img.bytes length:img.length]];
         [notification setContentImage: image];
     }

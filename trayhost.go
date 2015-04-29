@@ -1,18 +1,20 @@
 package trayhost
 
 import (
-	"errors"
 	"time"
 	"unsafe"
 )
 
 /*
+#cgo darwin CFLAGS: -DDARWIN -x objective-c
+#cgo darwin LDFLAGS: -framework Cocoa
+
 #cgo linux pkg-config: gtk+-2.0
 #cgo linux CFLAGS: -DLINUX -I/usr/include/libappindicator-0.1
 #cgo linux LDFLAGS: -ldl
+
 #cgo windows CFLAGS: -DWIN32
-#cgo darwin CFLAGS: -DDARWIN -x objective-c
-#cgo darwin LDFLAGS: -framework Cocoa
+
 #include <stdlib.h>
 #include "platform/common.h"
 #include "platform/platform.h"
@@ -31,7 +33,7 @@ type MenuItem struct {
 func Initialize(title string, imageData []byte, items []MenuItem) {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
-	img, freeImg := create_image(Image{Kind: ImageKindPng, Bytes: imageData})
+	img, freeImg := create_image(Image{Kind: "png", Bytes: imageData})
 	defer freeImg()
 
 	// Initialize menu.
@@ -77,78 +79,58 @@ func cbool(b bool) C.int {
 
 // ---
 
-// SetClipboardString sets the system clipboard to the specified UTF-8 encoded
+// SetClipboardText sets the system clipboard to the specified UTF-8 encoded
 // string.
 //
 // This function may only be called from the main thread.
-func SetClipboardString(str string) {
+func SetClipboardText(str string) {
 	cp := C.CString(str)
 	defer C.free(unsafe.Pointer(cp))
 
 	C.set_clipboard_string(cp)
 }
 
-// GetClipboardString returns the contents of the system clipboard, if it
-// contains or is convertible to a UTF-8 encoded string.
-//
-// This function may only be called from the main thread.
-func GetClipboardString() (string, error) {
-	cs := C.get_clipboard_string()
-	if cs == nil {
-		return "", errors.New("Can't get clipboard string.")
-	}
-
-	return C.GoString(cs), nil
-}
-
-type ImageKind uint8
-
-const (
-	ImageKindNone ImageKind = iota
-	ImageKindPng
-	ImageKindTiff
-	ImageKindMov
-)
+// File extension in lower case: "png", "jpg", "tiff", etc. Empty string means no image.
+type ImageKind string
 
 type Image struct {
-	Kind        ImageKind // TODO: Remove in favour of ContentType.
-	ContentType string
-	Bytes       []byte
+	Kind  ImageKind
+	Bytes []byte
 }
 
-// GetClipboardString returns the contents of the system clipboard, if it
-// contains or is convertible to an image.
+type ClipboardContent struct {
+	Text  string
+	Image Image
+	Files []string
+}
+
+// GetClipboardContent returns the contents of the system clipboard, if it
+// contains or is convertible to a UTF-8 encoded string, image, and/or files.
 //
 // This function may only be called from the main thread.
-func GetClipboardImage() (Image, error) {
-	img := C.get_clipboard_image()
-	if img.kind == 0 {
-		return Image{}, errors.New("Can't get clipboard image.")
+func GetClipboardContent() (ClipboardContent, error) {
+	var cc ClipboardContent
+
+	ccc := C.get_clipboard_content()
+	if ccc.text != nil {
+		cc.Text = C.GoString(ccc.text)
+	}
+	if ccc.image.kind != nil {
+		cc.Image = Image{
+			Kind:  ImageKind(C.GoString(ccc.image.kind)),
+			Bytes: C.GoBytes(ccc.image.bytes, ccc.image.length),
+		}
+	}
+	if ccc.files.count > 0 {
+		cc.Files = make([]string, int(ccc.files.count))
+		for i := 0; i < int(ccc.files.count); i++ {
+			var x *C.char
+			p := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(ccc.files.names)) + uintptr(i)*unsafe.Sizeof(x)))
+			cc.Files[i] = C.GoString(*p)
+		}
 	}
 
-	return Image{Kind: ImageKind(img.kind), Bytes: C.GoBytes(img.bytes, img.length)}, nil
-}
-
-/*func GetClipboardFile() (Image, error) {
-	img := C.get_clipboard_file()
-	if img.kind == 0 {
-		return Image{}, errors.New("Can't get clipboard file.")
-	}
-
-	return Image{Kind: ImageKind(img.kind), Bytes: C.GoBytes(img.bytes, img.length)}, nil
-}*/
-
-func GetClipboardFiles() ([]string, error) {
-	files := C.get_clipboard_files()
-
-	namesSlice := make([]string, int(files.count))
-	for i := 0; i < int(files.count); i++ {
-		var x *C.char
-		p := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(files.names)) + uintptr(i)*unsafe.Sizeof(x)))
-		namesSlice[i] = C.GoString(*p)
-	}
-
-	return namesSlice, nil
+	return cc, nil
 }
 
 // ---
