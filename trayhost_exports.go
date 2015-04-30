@@ -92,7 +92,7 @@ func invertPngImage(imageData []byte) []byte {
 		panic(err)
 	}
 
-	InvertImageNrgba(m.(*image.NRGBA))
+	invertImageNrgba(m.(*image.NRGBA))
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, m)
@@ -103,7 +103,7 @@ func invertPngImage(imageData []byte) []byte {
 	return buf.Bytes()
 }
 
-func InvertImageNrgba(nrgba *image.NRGBA) {
+func invertImageNrgba(nrgba *image.NRGBA) {
 	bounds := nrgba.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {

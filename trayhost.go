@@ -23,13 +23,24 @@ import "C"
 
 var menuItems []MenuItem
 
+// MenuItem is a menu item.
 type MenuItem struct {
-	Title   string
-	Enabled func() bool // nil means always enabled.
+	// Title is the title of menu item.
+	//
+	// If empty, it acts as a separator. SeparatorMenuItem can be used
+	// to create such separator menu items.
+	Title string
+
+	// Enabled can optionally control if this menu item is enabled or disabled.
+	//
+	// nil means always enabled.
+	Enabled func() bool
+
+	// Handler is triggered when the item is activated. nil means no handler.
 	Handler func()
 }
 
-// Run the host system's event loop.
+// Initialize sets up the application properties.
 func Initialize(title string, imageData []byte, items []MenuItem) {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
@@ -45,15 +56,17 @@ func Initialize(title string, imageData []byte, items []MenuItem) {
 	}
 }
 
+// EnterLoop enters main loop.
 func EnterLoop() {
 	C.native_loop()
 }
 
+// Exit exits the application. It can be called from a MenuItem handler.
 func Exit() {
 	C.exit_loop()
 }
 
-// Creates a separator MenuItem.
+// SeparatorMenuItem creates a separator MenuItem.
 func SeparatorMenuItem() MenuItem { return MenuItem{Title: ""} }
 
 func addItem(id int, item MenuItem) {
@@ -72,9 +85,8 @@ func cAddMenuItem(id C.int, title *C.char, disabled C.int) {
 func cbool(b bool) C.int {
 	if b {
 		return 1
-	} else {
-		return 0
 	}
+	return 0
 }
 
 // ---
@@ -83,21 +95,23 @@ func cbool(b bool) C.int {
 // string.
 //
 // This function may only be called from the main thread.
-func SetClipboardText(str string) {
-	cp := C.CString(str)
+func SetClipboardText(text string) {
+	cp := C.CString(text)
 	defer C.free(unsafe.Pointer(cp))
 
 	C.set_clipboard_string(cp)
 }
 
-// File extension in lower case: "png", "jpg", "tiff", etc. Empty string means no image.
+// ImageKind is a file extension in lower case: "png", "jpg", "tiff", etc. Empty string means no image.
 type ImageKind string
 
+// Image is an encoded image of certain kind.
 type Image struct {
 	Kind  ImageKind
 	Bytes []byte
 }
 
+// ClipboardContent holds the contents of system clipboard.
 type ClipboardContent struct {
 	Text  string
 	Image Image
@@ -150,6 +164,8 @@ type Notification struct {
 	Timeout time.Duration
 
 	// Activation (click) handler.
+	//
+	// nil means no handler.
 	Handler func()
 }
 
