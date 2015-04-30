@@ -155,8 +155,6 @@ struct clipboard_content get_clipboard_content() {
     if ([[pasteboard types] containsObject:NSFilenamesPboardType] &&
         (filenames = [pasteboard propertyListForType:NSFilenamesPboardType]) != NULL) {
 
-        //NSLog(@"filenames = %@", filenames);
-
         const int count = [filenames count];
         if (count) {
             NSEnumerator * e = [filenames objectEnumerator];
