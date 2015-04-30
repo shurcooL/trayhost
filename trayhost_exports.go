@@ -50,17 +50,19 @@ func notification_callback(notificationId C.int) {
 }
 
 func create_image(image Image) (C.struct_image, func()) {
-	img := C.struct_image{
-		kind: C.char(image.Kind),
-	}
+	var img C.struct_image
 
-	if len(image.Bytes) == 0 {
+	if image.Kind == "" || len(image.Bytes) == 0 {
 		return img, func() {}
 	}
 
 	// Copy the image data into unmanaged memory.
+	cImageKind := C.CString(string(image.Kind))
 	cImageData := C.malloc(C.size_t(len(image.Bytes)))
-	freeImg := func() { C.free(cImageData) }
+	freeImg := func() {
+		C.free(unsafe.Pointer(cImageKind))
+		C.free(cImageData)
+	}
 	var cImageDataSlice []C.uchar
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cImageDataSlice))
 	sliceHeader.Cap = len(image.Bytes)
@@ -70,6 +72,7 @@ func create_image(image Image) (C.struct_image, func()) {
 		cImageDataSlice[i] = C.uchar(b)
 	}
 
+	img.kind = cImageKind
 	img.bytes = unsafe.Pointer(&cImageDataSlice[0])
 	img.length = C.int(len(image.Bytes))
 
@@ -79,7 +82,7 @@ func create_image(image Image) (C.struct_image, func()) {
 //export invert_png_image
 func invert_png_image(img C.struct_image) C.struct_image {
 	imageData := invertPngImage(C.GoBytes(img.bytes, img.length))
-	img, _ = create_image(Image{Kind: ImageKindPng, Bytes: imageData})
+	img, _ = create_image(Image{Kind: "png", Bytes: imageData})
 	return img
 }
 
@@ -89,7 +92,7 @@ func invertPngImage(imageData []byte) []byte {
 		panic(err)
 	}
 
-	InvertImageNrgba(m.(*image.NRGBA))
+	invertImageNrgba(m.(*image.NRGBA))
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, m)
@@ -100,7 +103,7 @@ func invertPngImage(imageData []byte) []byte {
 	return buf.Bytes()
 }
 
-func InvertImageNrgba(nrgba *image.NRGBA) {
+func invertImageNrgba(nrgba *image.NRGBA) {
 	bounds := nrgba.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
