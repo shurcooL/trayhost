@@ -13,7 +13,7 @@ struct files {
 };
 
 struct clipboard_content {
-	const char * text;
+    const char * text;
     struct image image;
     struct files files;
 };
