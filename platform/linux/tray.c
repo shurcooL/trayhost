@@ -32,16 +32,10 @@ void display_notification(int id, const char* title, const char* body, struct im
 }
 
 // TODO: Implement.
-struct image get_clipboard_image()
+struct clipboard_content get_clipboard_content()
 {
-  struct image i;  
-  return i;
-}
-
-// TODO: Implement.
-char* get_clipboard_string()
-{
-  return NULL;
+  struct clipboard_content cc;
+  return cc;
 }
 
 // TODO: Implement.
