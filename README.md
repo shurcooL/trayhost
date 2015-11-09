@@ -1,7 +1,13 @@
-trayhost
-========
+# trayhost [![GoDoc](https://godoc.org/github.com/shurcooL/trayhost?status.svg)](https://godoc.org/github.com/shurcooL/trayhost)
 
-Cross-platform Go library to place an icon in the host operating system's taskbar.
+Package trayhost is a cross-platform Go library to place an icon in the host operating system's taskbar.
+
+Installation
+------------
+
+```bash
+go get -u github.com/shurcooL/trayhost
+```
 
 Notes
 -----
