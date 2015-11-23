@@ -9,6 +9,13 @@ Installation
 go get -u github.com/shurcooL/trayhost
 ```
 
+Platform Support
+----------------
+
+-	OS X - Fully implemented and supported.
+-	Linux - Not implemented.
+-	Windows - Not implemented.
+
 Notes
 -----
 
