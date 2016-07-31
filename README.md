@@ -1,13 +1,7 @@
 # trayhost [![GoDoc](https://godoc.org/github.com/shurcooL/trayhost?status.svg)](https://godoc.org/github.com/shurcooL/trayhost)
 
-Package trayhost is a cross-platform Go library to place an icon in the host operating system's taskbar.
-
-Installation
-------------
-
-```bash
-go get -u github.com/shurcooL/trayhost
-```
+Package trayhost is a cross-platform Go library to place an icon
+in the host operating system's taskbar.
 
 Platform Support
 ----------------
@@ -60,3 +54,10 @@ Here's a minimal `Info.plist` file as reference (only the entries that are neede
 -	`LSUIElement` is needed to make the app not appear in Cmd+Tab list and the dock while still being able to show a tooltip in the menu bar.
 
 Most other functionality of `trayhost` will be available if the binary is not a part of app bundle, but you will get a terminal pop up, and you will not be able to configure some aspects of the app.
+
+Installation
+------------
+
+```bash
+go get -u github.com/shurcooL/trayhost
+```
