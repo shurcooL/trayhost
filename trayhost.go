@@ -187,8 +187,8 @@ func (n Notification) Display() {
 
 // UpdateMenu will remove all menu items and add the new menu items
 func UpdateMenu(newMenu []MenuItem) {
-	menuItems = newMenu
 	C.clear_menu_items()
+	menuItems = newMenu
 	for id, item := range newMenu {
 		addItem(id, item)
 	}
