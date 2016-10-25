@@ -33,6 +33,15 @@ void add_menu_item(int id, const char* title, int disabled)
     AppendMenuW(hSubMenu, uFlags, id, (wchar_t*)title);
 }
 
+void clear_menu_items(){
+    int count = GetMenuItemCount(hSubMenu);
+    UINT i = 0;
+    for(; i < count; i++){
+        //always remove at 0 because they shift every time
+        RemoveMenu(hSubMenu, 0, MF_BYPOSITION);
+    }
+}
+
 void native_loop()
 {
     MSG msg;
@@ -44,8 +53,7 @@ void native_loop()
     }
 }
 
-void init(const char *title, unsigned char *imageData, unsigned int imageDataLen)
-{
+int init(const char * title, struct image img) {
     HWND hWnd;
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
@@ -91,7 +99,7 @@ void init(const char *title, unsigned char *imageData, unsigned int imageDataLen
 
         // Dump the icon to the temp file
         FILE* fIcon = fopen(szTempFileName, "wb");
-        fwrite(imageData, 1, imageDataLen, fIcon);
+        fwrite(img.bytes, 1, img.length, fIcon);
         fclose(fIcon);
         fIcon = NULL;
 
@@ -114,6 +122,7 @@ void init(const char *title, unsigned char *imageData, unsigned int imageDataLen
     Shell_NotifyIcon(NIM_ADD, &nid);
 
     hSubMenu = CreatePopupMenu();
+    return 0;
 }
 
 void exit_loop() {
@@ -171,7 +180,6 @@ void ShowMenu(HWND hWnd)
     GetCursorPos(&p);
     SetForegroundWindow(hWnd); // Win32 bug work-around
     TrackPopupMenu(hSubMenu, TPM_BOTTOMALIGN | TPM_LEFTALIGN, p.x, p.y, 0, hWnd, NULL);
-
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -201,4 +209,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
+}
+
+void set_clipboard_string(const char * string) {
+
+}
+
+struct clipboard_content get_clipboard_content() {
+    struct clipboard_content cc;
+    return cc;
+}
+
+void display_notification(int notificationId, const char * title, const char * body, struct image img, double timeout) {
+
 }
