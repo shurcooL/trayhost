@@ -213,14 +213,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 void set_clipboard_string(const char * string) {
-
+    // TODO: Implement.
 }
 
 struct clipboard_content get_clipboard_content() {
+    // TODO: Implement.
     struct clipboard_content cc;
     return cc;
 }
 
 void display_notification(int notificationId, const char * title, const char * body, struct image img, double timeout) {
-
+    // TODO: Implement.
 }
