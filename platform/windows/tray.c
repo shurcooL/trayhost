@@ -33,11 +33,12 @@ void add_menu_item(int id, const char* title, int disabled)
     AppendMenuW(hSubMenu, uFlags, id, (wchar_t*)title);
 }
 
-void clear_menu_items(){
+void clear_menu_items()
+{
     int count = GetMenuItemCount(hSubMenu);
     UINT i = 0;
-    for(; i < count; i++){
-        //always remove at 0 because they shift every time
+    for (; i < count; i++) {
+        // always remove at 0 because they shift every time
         RemoveMenu(hSubMenu, 0, MF_BYPOSITION);
     }
 }
