@@ -70,6 +70,10 @@ void add_menu_item(int itemId, const char * title, int disabled) {
     [appMenu addItem:menuItem];
 }
 
+void clear_menu_items() {
+    [appMenu removeAllItems];
+}
+
 void add_separator_item() {
     [appMenu addItem:[NSMenuItem separatorItem]];
 }

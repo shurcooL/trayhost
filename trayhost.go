@@ -184,3 +184,12 @@ func (n Notification) Display() {
 
 	C.display_notification(notificationId, cTitle, cBody, img, C.double(n.Timeout.Seconds()))
 }
+
+// UpdateMenu removes all current menu items, and adds new menu items.
+func UpdateMenu(newMenu []MenuItem) {
+	C.clear_menu_items()
+	menuItems = newMenu
+	for id, item := range newMenu {
+		addItem(id, item)
+	}
+}
