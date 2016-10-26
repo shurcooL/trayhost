@@ -3,7 +3,7 @@
 //
 // Platform Support
 //
-// -	OS X - Fully implemented and supported.
+// -	macOS - Fully implemented and supported.
 //
 // -	Linux - Not implemented.
 //
@@ -11,7 +11,7 @@
 //
 // Notes
 //
-// On OS X, for Notification Center user notifications to work, your Go binary that uses `trayhost` must be a part of a standard OS X app bundle.
+// On macOS, for Notification Center user notifications to work, your Go binary that uses `trayhost` must be a part of a standard macOS app bundle.
 //
 // Here's a minimal layout of an app bundle:
 //
