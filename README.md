@@ -59,6 +59,7 @@ nothing extra):
 ```
 
 -	`CFBundleIdentifier` needs to be set to some value for Notification Center to work.
+-	The binary must be inside `Contents/MacOS` directory for Notification Center to work.
 -	`NSHighResolutionCapable` to enable Retina mode.
 -	`LSUIElement` is needed to make the app not appear in Cmd+Tab list and the dock
 while still being able to show a tooltip in the menu bar.
