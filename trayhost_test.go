@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/shurcooL/trayhost"
@@ -68,8 +70,20 @@ func Example() {
 		},
 	}
 
-	// Tray icon.
-	iconData, err := ioutil.ReadFile("app-icon@2x.png")
+	// On macOS, when you run an app bundle, the working directory of the executed process
+	// is the root directory (/), not the app bundle's Contents/Resources directory.
+	// Change directory to Resources so that we can load resources from there.
+	ep, err := os.Executable()
+	if err != nil {
+		log.Fatalln("os.Executable:", err)
+	}
+	err = os.Chdir(filepath.Join(filepath.Dir(ep), "..", "Resources"))
+	if err != nil {
+		log.Fatalln("os.Chdir:", err)
+	}
+
+	// Load tray icon.
+	iconData, err := ioutil.ReadFile("icon@2x.png")
 	if err != nil {
 		log.Fatalln(err)
 	}
