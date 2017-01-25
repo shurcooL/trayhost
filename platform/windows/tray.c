@@ -69,7 +69,7 @@ int init(const char * title, struct image img) {
     hWnd = InitInstance(hInstance, FALSE); // Don't show window
     if (!hWnd)
     {
-        return;
+        return -1;
     }
 
     // Let's load up the tray icon
@@ -85,7 +85,7 @@ int init(const char * title, struct image img) {
                                    lpTempPathBuffer); // buffer for path
         if (dwRetVal > MAX_PATH+1 || (dwRetVal == 0))
         {
-            return; // Failure
+            return -1; // Failure
         }
 
         //  Generates a temporary file name.
@@ -95,7 +95,7 @@ int init(const char * title, struct image img) {
                                       szTempFileName);  // buffer for name
         if (uRetVal == 0)
         {
-            return; // Failure
+            return -1; // Failure
         }
 
         // Dump the icon to the temp file
