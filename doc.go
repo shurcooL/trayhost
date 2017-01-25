@@ -3,11 +3,11 @@
 //
 // Platform Support
 //
-// -	macOS - Fully implemented and supported.
+// -	macOS - Fully implemented and supported by @shurcooL.
 //
-// -	Linux - Not implemented.
+// -	Linux - Partially implemented, but unsupported (needs an owner/maintainer).
 //
-// -	Windows - Not implemented.
+// -	Windows - Partially implemented, but unsupported (needs an owner/maintainer).
 //
 // Notes
 //

@@ -9,9 +9,9 @@ in the host operating system's taskbar.
 Platform Support
 ----------------
 
--	macOS - Fully implemented and supported.
--	Linux - Not implemented.
--	Windows - Not implemented.
+-	macOS - Fully implemented and supported by [@shurcooL](https://github.com/shurcooL).
+-	Linux - Partially implemented, but unsupported (needs an owner/maintainer).
+-	Windows - Partially implemented, but unsupported (needs an owner/maintainer).
 
 Notes
 -----
