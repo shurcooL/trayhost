@@ -2,7 +2,7 @@ sudo: false
 os: osx
 language: go
 go:
-  - 1.x
+  - 1.8
   - master
 matrix:
   allow_failures:
