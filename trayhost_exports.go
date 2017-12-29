@@ -92,7 +92,10 @@ func invertPngImage(imageData []byte) []byte {
 		panic(err)
 	}
 
-	invertImageNrgba(m.(*image.NRGBA))
+	switch m.(type) {
+	case *image.NRGBA:
+		invertImageNrgba(m.(*image.NRGBA))
+	}
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, m)

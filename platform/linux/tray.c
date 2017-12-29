@@ -35,6 +35,9 @@ void display_notification(int id, const char* title, const char* body, struct im
 void clear_menu_items() {}
 
 // TODO: Implement.
+void set_status_item_icon(struct image img) {}
+
+// TODO: Implement.
 struct clipboard_content get_clipboard_content()
 {
   struct clipboard_content cc;

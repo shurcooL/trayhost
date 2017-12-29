@@ -56,6 +56,13 @@ func Initialize(title string, imageData []byte, items []MenuItem) {
 	}
 }
 
+// SetStatusIcon replaces the icon image data.
+func SetStatusIcon(imageData []byte) {
+	img, freeImg := create_image(Image{Kind: "png", Bytes: imageData})
+	defer freeImg()
+	C.set_status_item_icon(img)
+}
+
 // EnterLoop enters main loop.
 func EnterLoop() {
 	C.native_loop()
