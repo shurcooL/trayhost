@@ -225,3 +225,7 @@ struct clipboard_content get_clipboard_content() {
 void display_notification(int notificationId, const char * title, const char * body, struct image img, double timeout) {
     // TODO: Implement.
 }
+
+// TODO: Implement.
+void set_status_item_icon(struct image img) {}
+

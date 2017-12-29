@@ -1,12 +1,15 @@
 #import <Cocoa/Cocoa.h>
 
 NSMenu * appMenu;
+NSStatusItem * appStatusItem;
 char * clipboardString;
 
 extern void tray_callback(int itemId);
 extern BOOL tray_enabled(int itemId);
 extern void notification_callback();
 extern struct image invert_png_image(struct image img);
+
+void set_status_item_icon(struct image img);
 
 @interface ManageHandler : NSObject<NSUserNotificationCenterDelegate>
 - (void)manage:(id)sender;
@@ -112,6 +115,16 @@ int init(const char * title, struct image img) {
             [self userNotificationCenter: nil didActivateNotification: launchNotification];
     }*/
 
+    appStatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
+    [appStatusItem setMenu:appMenu];
+    [appStatusItem setHighlightMode:YES];
+    [appStatusItem setToolTip:[NSString stringWithUTF8String:title]];
+    set_status_item_icon(img);
+
+    return 0;
+}
+
+void set_status_item_icon(struct image img) {
     NSSize iconSize = NSMakeSize(16, 16);
     NSImage * icon = [[NSImage alloc] initWithSize:iconSize];
     NSData * iconData = [NSData dataWithBytes:img.bytes length:img.length];
@@ -123,14 +136,8 @@ int init(const char * title, struct image img) {
     NSData * icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
     [icon2 addRepresentation:[NSBitmapImageRep imageRepWithData:icon2Data]];
 
-    NSStatusItem * statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
-    [statusItem setMenu:appMenu];
-    [statusItem setImage:icon];
-    [statusItem setAlternateImage:icon2];
-    [statusItem setHighlightMode:YES];
-    [statusItem setToolTip:[NSString stringWithUTF8String:title]];
-
-    return 0;
+    [appStatusItem setImage:icon];
+    [appStatusItem setAlternateImage:icon2];
 }
 
 void set_clipboard_string(const char * string) {
