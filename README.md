@@ -9,7 +9,7 @@ in the host operating system's taskbar.
 Platform Support
 ----------------
 
--	macOS - Fully implemented and supported by [@shurcooL](https://github.com/shurcooL).
+-	macOS - Fully implemented and supported by [@dmitshur](https://github.com/dmitshur).
 -	Linux - Partially implemented, but unsupported (needs an owner/maintainer).
 -	Windows - Partially implemented, but unsupported (needs an owner/maintainer).
 

@@ -3,7 +3,7 @@
 //
 // Platform Support
 //
-// -	macOS - Fully implemented and supported by @shurcooL.
+// -	macOS - Fully implemented and supported by @dmitshur.
 //
 // -	Linux - Partially implemented, but unsupported (needs an owner/maintainer).
 //
