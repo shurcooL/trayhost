@@ -41,6 +41,7 @@ type MenuItem struct {
 }
 
 // Initialize sets up the application properties.
+// imageData is the icon image in PNG format.
 func Initialize(title string, imageData []byte, items []MenuItem) {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))

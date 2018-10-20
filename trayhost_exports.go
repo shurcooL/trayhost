@@ -1,10 +1,6 @@
 package trayhost
 
 import (
-	"bytes"
-	"image"
-	"image/color"
-	"image/png"
 	"log"
 	"reflect"
 	"unsafe"
@@ -77,41 +73,4 @@ func create_image(image Image) (C.struct_image, func()) {
 	img.length = C.int(len(image.Bytes))
 
 	return img, freeImg
-}
-
-//export invert_png_image
-func invert_png_image(img C.struct_image) C.struct_image {
-	imageData := invertPngImage(C.GoBytes(img.bytes, img.length))
-	img, _ = create_image(Image{Kind: "png", Bytes: imageData})
-	return img
-}
-
-func invertPngImage(imageData []byte) []byte {
-	m, _, err := image.Decode(bytes.NewReader(imageData))
-	if err != nil {
-		panic(err)
-	}
-
-	invertImageNrgba(m.(*image.NRGBA))
-
-	var buf bytes.Buffer
-	err = png.Encode(&buf, m)
-	if err != nil {
-		panic(err)
-	}
-
-	return buf.Bytes()
-}
-
-func invertImageNrgba(nrgba *image.NRGBA) {
-	bounds := nrgba.Bounds()
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			c := nrgba.At(x, y).(color.NRGBA)
-			c.R = 255 - c.R
-			c.G = 255 - c.G
-			c.B = 255 - c.B
-			nrgba.SetNRGBA(x, y, c)
-		}
-	}
 }

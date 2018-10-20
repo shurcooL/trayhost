@@ -6,7 +6,6 @@ char * clipboardString;
 extern void tray_callback(int itemId);
 extern BOOL tray_enabled(int itemId);
 extern void notification_callback();
-extern struct image invert_png_image(struct image img);
 
 @interface ManageHandler : NSObject<NSUserNotificationCenterDelegate>
 - (void)manage:(id)sender;
@@ -116,17 +115,11 @@ int init(const char * title, struct image img) {
     NSImage * icon = [[NSImage alloc] initWithSize:iconSize];
     NSData * iconData = [NSData dataWithBytes:img.bytes length:img.length];
     [icon addRepresentation:[NSBitmapImageRep imageRepWithData:iconData]];
-
-    img = invert_png_image(img);
-
-    NSImage * icon2 = [[NSImage alloc] initWithSize:iconSize];
-    NSData * icon2Data = [NSData dataWithBytes:img.bytes length:img.length];
-    [icon2 addRepresentation:[NSBitmapImageRep imageRepWithData:icon2Data]];
+    [icon setTemplate:YES];
 
     NSStatusItem * statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength] retain];
     [statusItem setMenu:appMenu];
     [statusItem setImage:icon];
-    [statusItem setAlternateImage:icon2];
     [statusItem setHighlightMode:YES];
     [statusItem setToolTip:[NSString stringWithUTF8String:title]];
 
