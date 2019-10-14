@@ -9,6 +9,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <string.h>
 #include <libappindicator/app-indicator.h>
+#include <libnotify/notify.h>
 
 static const char *icon = NULL;
 static size_t iconSize = 0;
@@ -29,6 +30,14 @@ void _tray_callback(GtkMenuItem *item, gpointer user_data)
 // TODO: Implement.
 void display_notification(int id, const char* title, const char* body, struct image imageData, double duration)
 {
+    char app_name[32];
+    snprintf(app_name, sizeof(app_name), "%08x", id);
+    notify_init(app_name);
+    NotifyNotification* n = notify_notification_new (title, 
+                                 body,
+                                  0);
+    notify_notification_set_timeout(n, (int)(1000*duration)); // milliseconds
+    notify_notification_show(n, 0);
 }
 
 // TODO: Implement.
