@@ -148,13 +148,17 @@ void init(const char* title, struct image imageData)
 
 void native_loop()
 {
-  gtk_widget_show_all(menu);
+  external_main_loop();
   gtk_main ();
 }
 
 void exit_loop()
 {
   gtk_main_quit();
+}
+
+void external_main_loop() {
+  gtk_widget_show_all(menu);
 }
 
 

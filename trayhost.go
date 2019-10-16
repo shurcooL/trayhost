@@ -66,6 +66,11 @@ func Exit() {
 	C.exit_loop()
 }
 
+// init widget for running in other gtk_main loop
+func InitWidget() {
+	C.external_main_loop()
+}
+
 // SeparatorMenuItem creates a separator MenuItem.
 func SeparatorMenuItem() MenuItem { return MenuItem{Title: ""} }
 
