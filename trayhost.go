@@ -10,7 +10,7 @@ import (
 #cgo darwin LDFLAGS: -framework Cocoa
 
 #cgo linux pkg-config: gtk+-3.0 appindicator3-0.1 libnotify
-#cgo linux CFLAGS: -DLINUX
+#cgo linux CFLAGS: -DLINUX -Wno-deprecated-declarations
 #cgo linux LDFLAGS: -ldl
 
 #cgo windows CFLAGS: -DWIN32

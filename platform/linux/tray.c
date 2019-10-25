@@ -107,7 +107,8 @@ void create_indicator(void *handle)
 
 static void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data)
 {
-    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, gtk_get_current_event_time());
+    // gtk_menu_popup_at_widget(GTK_MENU(menu), NULL, GDK_GRAVITY_SOUTH_EAST, NULL, gtk_get_current_event_time());
+    gtk_menu_popup_at_pointer(GTK_MENU(menu), NULL);
 }
 
 void create_status_icon()
@@ -146,6 +147,10 @@ void init(const char* title, struct image imageData)
     }
 }
 
+void external_main_loop() {
+  gtk_widget_show_all(menu);
+}
+
 void native_loop()
 {
   external_main_loop();
@@ -157,9 +162,6 @@ void exit_loop()
   gtk_main_quit();
 }
 
-void external_main_loop() {
-  gtk_widget_show_all(menu);
-}
 
 
 #endif // NATIVE_C
