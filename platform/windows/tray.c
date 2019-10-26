@@ -43,6 +43,10 @@ void clear_menu_items()
     }
 }
 
+void external_main_loop ()
+{
+}
+
 void native_loop()
 {
     MSG msg;

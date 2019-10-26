@@ -9,6 +9,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <string.h>
 #include <libappindicator/app-indicator.h>
+#include <libnotify/notify.h>
 
 static const char *icon = NULL;
 static size_t iconSize = 0;
@@ -29,6 +30,14 @@ void _tray_callback(GtkMenuItem *item, gpointer user_data)
 // TODO: Implement.
 void display_notification(int id, const char* title, const char* body, struct image imageData, double duration)
 {
+    char app_name[32];
+    snprintf(app_name, sizeof(app_name), "%08x", id);
+    notify_init(app_name);
+    NotifyNotification* n = notify_notification_new (title, 
+                                 body,
+                                  0);
+    notify_notification_set_timeout(n, (int)(1000*duration)); // milliseconds
+    notify_notification_show(n, 0);
 }
 
 // TODO: Implement.
@@ -98,7 +107,8 @@ void create_indicator(void *handle)
 
 static void tray_icon_on_menu(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data)
 {
-    gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, gtk_get_current_event_time());
+    // gtk_menu_popup_at_widget(GTK_MENU(menu), NULL, GDK_GRAVITY_SOUTH_EAST, NULL, gtk_get_current_event_time());
+    gtk_menu_popup_at_pointer(GTK_MENU(menu), NULL);
 }
 
 void create_status_icon()
@@ -137,9 +147,13 @@ void init(const char* title, struct image imageData)
     }
 }
 
+void external_main_loop() {
+  gtk_widget_show_all(menu);
+}
+
 void native_loop()
 {
-  gtk_widget_show_all(menu);
+  external_main_loop();
   gtk_main ();
 }
 
@@ -147,6 +161,7 @@ void exit_loop()
 {
   gtk_main_quit();
 }
+
 
 
 #endif // NATIVE_C

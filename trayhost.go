@@ -9,8 +9,8 @@ import (
 #cgo darwin CFLAGS: -DDARWIN -x objective-c
 #cgo darwin LDFLAGS: -framework Cocoa
 
-#cgo linux pkg-config: gtk+-2.0
-#cgo linux CFLAGS: -DLINUX -I/usr/include/libappindicator-0.1
+#cgo linux pkg-config: gtk+-3.0 appindicator3-0.1 libnotify
+#cgo linux CFLAGS: -DLINUX -Wno-deprecated-declarations
 #cgo linux LDFLAGS: -ldl
 
 #cgo windows CFLAGS: -DWIN32
@@ -65,6 +65,11 @@ func EnterLoop() {
 // Exit exits the application. It can be called from a MenuItem handler.
 func Exit() {
 	C.exit_loop()
+}
+
+// init widget for running in other gtk_main loop
+func InitWidget() {
+	C.external_main_loop()
 }
 
 // SeparatorMenuItem creates a separator MenuItem.

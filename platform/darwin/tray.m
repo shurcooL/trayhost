@@ -81,6 +81,9 @@ void native_loop() {
     [NSApp run];
 }
 
+void external_main_loop() {
+}
+
 void exit_loop() {
     // Clear all notifications.
     [[NSUserNotificationCenter defaultUserNotificationCenter] removeAllDeliveredNotifications];
